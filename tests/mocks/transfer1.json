@@ -1,0 +1,11 @@
+{
+  "uuid": "d86b0299-e2fa-4713-833a-96a6a75271b8",
+  "amount": "100",
+  "sending_address": "11111111",
+  "receiving_address": "w1",
+  "data": {},
+  "state": "prepared",
+  "execution_condition": "cc:0:3:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU:0",
+  "expires_at": "2016-05-18T12:00:00.000Z",
+  "execution_fulfillment": "ff:0:3:123123123"
+}
