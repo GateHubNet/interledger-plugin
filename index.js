@@ -1,7 +1,6 @@
 'use strict';
 
 const EventEmitter = require('eventemitter2');
-const request = require('request-promise');
 const debug = require('debug')('plugin');
 const Promise = require('bluebird');
 const gatehub = require('./gateways/gatehub');
