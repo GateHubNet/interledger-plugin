@@ -60,7 +60,12 @@ describe('Interledger Plugin', () => {
 
     describe ('Info', () => {
 
-        it ('should connect', () => {
+        it ('should connect and return promise', () => {
+            this.plugin = Plugin(opts);
+            return assert.eventually.equal(this.plugin.connect(), null);
+        });
+
+        it ('should be connected', () => {
             return assert.equal(this.plugin.isConnected(), true);
         });
 

@@ -38,7 +38,10 @@ module.exports = Object.assign({
 
             this.connection = reconnect({immediate: true}, (ws) => {
                 ws.on('open', () => {
-                    debug('ws connected to ' + this.ledger.notificationsUrl)
+                    debug('ws connected to ' + this.ledger.notificationsUrl);
+
+                    this.connected = true;
+                    this.emit('connect');
                 });
 
                 ws.on('message', (data) => {
@@ -83,8 +86,6 @@ module.exports = Object.assign({
             this.connection
                 .on('connect', (websocket) => {
                     this.ws = websocket;
-                    this.connected = true;
-                    this.emit('connect');
                 })
                 .on('disconnect', () => {
                     this.ws = null;

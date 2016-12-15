@@ -1,13 +1,15 @@
 "use strict";
 
-const assert = require('chai').assert;
+const chai = require('chai');
 const mocha = require('mocha');
 const mock = require('mock-require');
-
-mock('./gateways/gatehub', '../tests/mocks/gatehubMock');
+const chaiAsPromised = require('chai-as-promised');
+mock('../gateways/gatehub', './mocks/gatehubMock');
 
 const Plugin = require('../index');
 const gatehubMock = require('./mocks/gatehubMock');
+let assert = chai.assert;
+chai.use(chaiAsPromised);
 
 let plugin = null;
 let opts = {
@@ -48,6 +50,16 @@ describe('address service', () => {
         it('should be connected', (next) => {
             assert.isTrue(plugin.isConnected());
             next();
+        });
+    });
+
+    describe('info', () => {
+        it ('should get prefix', () => {
+           return assert.eventually.equal(plugin.getPrefix(), `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}`);
+        });
+
+        it ('should return account', () => {
+            return assert.eventually.equal(plugin.getAccount(), `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.${opts.account.wallet}`);
         });
     });
 

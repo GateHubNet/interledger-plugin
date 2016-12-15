@@ -5,7 +5,9 @@ const request = require('request-promise');
 const debug = require('debug')('plugin');
 const Promise = require('bluebird');
 const gatehub = require('./gateways/gatehub');
+const Error = require('./errors');
 const lo = require('lodash');
+const Condition = require('five-bells-condition');
 
 module.exports = (opts) => {
 
@@ -96,27 +98,32 @@ module.exports = (opts) => {
         connect: function () {
             debug('connecting...');
 
+            gatehub.removeAllListeners('connect');
             gatehub.on('connect', () => {
                 connected = true;
                 this.emit('connect');
                 debug('connected to gatehub');
             });
 
+            gatehub.removeAllListeners('disconnect');
             gatehub.on('disconnect', () => {
                 connected = false;
                 this.emit('disconnect');
                 debug('disconnected from gatehub');
             });
 
+            gatehub.removeAllListeners('error');
             gatehub.on('error', (error) => {
                 this.emit('error');
                 debug('plugin error ', error);
             });
 
+            gatehub.removeAllListeners('message');
             gatehub.on('message', (message) => {
                 handleMessage.call(this, message);
             });
 
+            gatehub.removeAllListeners('transfer');
             gatehub.on('transfer', (message) => {
                 handleTransfer.call(this, message);
             });
@@ -149,7 +156,7 @@ module.exports = (opts) => {
         },
 
         getAccount: function () {
-            return Promise.resolve(prefix + account.wallet);
+            return Promise.resolve(`${prefix}.${account.wallet}`);
         },
 
         getBalance: function () {
@@ -181,10 +188,30 @@ module.exports = (opts) => {
 
         getFulfillment: function (transferId) {
             return gatehub.getFulfillment(transferId)
-                .then(transfer => transfer.execution_fulfillment);
+                .then(transfer => {
+                    if (transfer.execution_fulfillment) {
+                        return transfer.execution_fulfillment;
+                    }
+                    else if (transfer.cancellation_fulfilment) {
+                        throw new Error.AlreadyRolledBackError(`transfer ${transferId} wont be fulfilled`);
+                    }
+                    else {
+                        throw new Error.MissingFulfillmentError(`transfer ${tranferId} not yet fulfilled`);
+                    }
+                })
+                .catch(err => {
+                    throw new Error.TransferNotFoundError(`transfer ${transferId} not found`);
+                });
         },
 
         fulfillCondition: function (transferId, fulfillment) {
+            try {
+                Condition.validateCondition(fulfillment);
+            }
+            catch (err) {
+                throw new Error.InvalidFieldsError('fulfillment not valid format');
+            }
+
             return gatehub.fulfillCondition(transferId, fulfillment);
         },
 
