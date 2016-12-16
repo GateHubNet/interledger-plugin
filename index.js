@@ -27,7 +27,7 @@ let plugin = (opts) => {
         }
 
         return {
-            wallet: parts[parts.length-1]
+            wallet: parts[2]
         };
     }
 
