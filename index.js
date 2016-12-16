@@ -8,7 +8,7 @@ const Error = require('./errors');
 const lo = require('lodash');
 const Condition = require('five-bells-condition');
 
-module.exports = (opts) => {
+let plugin = (opts) => {
 
     // TODO validate opts
 
@@ -204,13 +204,6 @@ module.exports = (opts) => {
         },
 
         fulfillCondition: function (transferId, fulfillment) {
-            try {
-                Condition.validateCondition(fulfillment);
-            }
-            catch (err) {
-                throw new Error.InvalidFieldsError('fulfillment not valid format');
-            }
-
             return gatehub.fulfillCondition(transferId, fulfillment);
         },
 
@@ -220,3 +213,5 @@ module.exports = (opts) => {
 
     }, EventEmitter.prototype);
 };
+
+module.exports = function Plugin (opts) { return plugin(opts); };
