@@ -170,6 +170,7 @@ let plugin = (opts) => {
 
             return gatehub.sendTransfer({
                 uuid: transfer.id,
+                sending_user_uuid: account.userUuid,
                 sending_address: account.wallet,
                 receiving_address: parseAccount(transfer.account).wallet,
                 vault_uuid: ledger.vaultUuid,
