@@ -6,6 +6,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const nock = require('nock');
 const mock = require('mock-require');
+const Error = require('../errors');
 
 mock('ws', mockSocket.WebSocket);
 
@@ -169,6 +170,12 @@ describe('Interledger Plugin', () => {
             this.ilpMock.get('/transfers/u123').replyWithFile(200, __dirname + '/mocks/transfer1.json');
 
             return assert.eventually.equal(this.plugin.getFulfillment('u123'), "ff:0:3:123123123");
+        });
+
+        it ('should fire MissingFulfillmentError on missing fulifillment', () => {
+            this.ilpMock.get('/transfers/t123').reply(200, {});
+
+            return assert.isRejected(this.plugin.getFulfillment('t123'), Error.MissingFulfillmentError);
         });
 
     });

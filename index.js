@@ -196,11 +196,8 @@ let plugin = (opts) => {
                         throw new Error.AlreadyRolledBackError(`transfer ${transferId} wont be fulfilled`);
                     }
                     else {
-                        throw new Error.MissingFulfillmentError(`transfer ${tranferId} not yet fulfilled`);
+                        throw new Error.MissingFulfillmentError(`transfer ${transferId} not yet fulfilled`);
                     }
-                })
-                .catch(err => {
-                    throw new Error.TransferNotFoundError(`transfer ${transferId} not found`);
                 });
         },
 
