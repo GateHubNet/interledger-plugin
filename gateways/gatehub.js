@@ -114,7 +114,7 @@ module.exports = Object.assign({
     },
 
     subscribe: function () {
-        return this.sendWs('subscribe', { account: this.account.userUuid });
+        return this.sendWs('subscribe', { account: this.account.wallet });
     },
 
     sendWs: function (method, params) {

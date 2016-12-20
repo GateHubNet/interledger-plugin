@@ -8,6 +8,19 @@ const Error = require('./errors');
 const lo = require('lodash');
 const Condition = require('five-bells-condition');
 
+/**
+ * @param {Object} opts options for the ledger plugin, or an instantiated plugin object
+ * @param {Object} opts.ledger Ledger configuration
+ * @param {String} opts.ledger.prefix ledger prefix
+ * @param {String} opts.ledger.gatewayUuid uuid of the gateway
+ * @param {String} opts.ledger.vaultUuid uuid of the vault - specifies the currency
+ * @param {String} opts.ledger.ilpUrl url of the ledger service
+ * @param {String} opts.ledger.coreUrl url of the core gatehub service
+ * @param {String} opts.ledger.notificationsUrl url endpoint of the notifications
+ * @param {Object} opts.account Account for the plugin
+ * @param {String} opts.account.userUuid uuid of the plugin user
+ * @param {String} opts.account.wallet address of the wallet for the plugin user
+ */
 let plugin = (opts) => {
 
     // TODO validate opts
