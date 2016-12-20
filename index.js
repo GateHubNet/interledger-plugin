@@ -101,14 +101,14 @@ let plugin = (opts) => {
             gatehub.on('connect', () => {
                 connected = true;
                 this.emit('connect');
-                debug('connected to gatehub');
+                debug('ws connected to gatehub');
             });
 
             gatehub.removeAllListeners('disconnect');
             gatehub.on('disconnect', () => {
                 connected = false;
                 this.emit('disconnect');
-                debug('disconnected from gatehub');
+                debug('ws disconnected from gatehub');
             });
 
             gatehub.removeAllListeners('error');
@@ -142,12 +142,12 @@ let plugin = (opts) => {
         },
 
         getInfo: function () {
-            //if (cached.info) {
-            //    return Promise.resolve(cached.info);
-            //}
+            debug('getting info');
 
-            return gatehub.getInfo();
-                //.tap(info => cached.info = info);
+            return gatehub.getInfo().then(info => {
+                debug('got info', info);
+                return info;
+            });
         },
 
         getPrefix: function () {
@@ -155,18 +155,26 @@ let plugin = (opts) => {
         },
 
         getAccount: function () {
+            debug('getting account', `${prefix}.${account.wallet}`);
+
             return Promise.resolve(`${prefix}.${account.wallet}`);
         },
 
         getBalance: function () {
+            debug('getting balance');
+
             return gatehub.getBalance().then(balances => {
                 let balance = balances.filter(balance => balance.vault.uuid == ledger.vaultUuid)[0];
-                return balance.available ? balance.available : "0";
+                balance = balance.available ? balance.available : "0";
+
+                debug('got balance', balance);
+                return balance;
             });
         },
 
         sendTransfer: function (transfer) {
             // TODO validation
+            debug('sending transfer', transfer);
 
             return gatehub.sendTransfer({
                 uuid: transfer.id,
@@ -183,12 +191,18 @@ let plugin = (opts) => {
         },
 
         sendMessage: function (message) {
+            debug('sending message', message);
+
             return gatehub.sendMessage(message);
         },
 
         getFulfillment: function (transferId) {
+            debug('getting fulfillment', transferId);
+
             return gatehub.getFulfillment(transferId)
                 .then(transfer => {
+                    debug('got fulfillment', transfer);
+
                     if (transfer.execution_fulfillment) {
                         return transfer.execution_fulfillment;
                     }
@@ -202,10 +216,14 @@ let plugin = (opts) => {
         },
 
         fulfillCondition: function (transferId, fulfillment) {
+            debug('fulfilling transfer', transferId);
+
             return gatehub.fulfillCondition(transferId, fulfillment);
         },
 
         rejectIncommingTransfer: function (transferId, rejectMessage) {
+            debug('rejecting transfer', transferId);
+
             return gatehub.rejectTransfer(transferId, rejectMessage);
         }
 

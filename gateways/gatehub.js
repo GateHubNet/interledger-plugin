@@ -38,7 +38,7 @@ module.exports = Object.assign({
 
             this.connection = reconnect({immediate: true}, (ws) => {
                 ws.on('open', () => {
-                    debug('ws connected to ' + this.ledger.notificationsUrl);
+                    debug('ws connected', this.ledger.ilpUrl.replace("http", "ws") + this.ledger.notificationsUrl);
 
                     this.connected = true;
                     this.emit('connect');
