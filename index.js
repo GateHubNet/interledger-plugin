@@ -187,6 +187,9 @@ let plugin = (opts) => {
                 note: transfer.noteToSelf,
                 condition: transfer.executionCondition,
                 expires_at: transfer.expiresAt
+            }).then(transfer => {
+                debug('got transfer response', transfer);
+                return null;
             });
         },
 
