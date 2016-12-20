@@ -173,7 +173,7 @@ describe('Interledger Plugin', () => {
         });
 
         it ('should fire MissingFulfillmentError on missing fulifillment', () => {
-            this.ilpMock.get('/transfers/t123').reply(200, {});
+            this.ilpMock.get('/transfers/t123').replyWithFile(200, __dirname + '/mocks/transferFulfillment1.json');
 
             return assert.isRejected(this.plugin.getFulfillment('t123'), Error.MissingFulfillmentError);
         });
