@@ -6,7 +6,6 @@ const Promise = require('bluebird');
 const gatehub = require('./gateways/gatehub');
 const Error = require('./errors');
 const lo = require('lodash');
-const Condition = require('five-bells-condition');
 
 /**
  * @param {Object} opts options for the ledger plugin, or an instantiated plugin object
