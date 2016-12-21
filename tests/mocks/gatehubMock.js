@@ -16,6 +16,7 @@ module.exports = Object.assign({
 
     sendTransfer: function (id, account, amount, data, note, condition, expiresAt) {
         this.callbacks.transfer(id, account, amount, data, note, condition, expiresAt);
+        return Promise.resolve({});
     },
 
     testEmit: function (event, data) {

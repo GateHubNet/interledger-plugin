@@ -22,7 +22,6 @@ const Condition = require('five-bells-condition');
  * @param {String} opts.account.wallet address of the wallet for the plugin user
  */
 let plugin = (opts) => {
-
     // TODO validate opts
 
     let connected = false;

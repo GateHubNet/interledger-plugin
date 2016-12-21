@@ -18,6 +18,11 @@ module.exports = Object.assign({
     connected: false,
 
     connect: function (opts) {
+        if (this.connected) {
+            debug('already connected');
+            return Promise.resolve(null);
+        }
+
         this.ledger = opts.ledger;
         this.account = opts.account;
 
@@ -34,11 +39,12 @@ module.exports = Object.assign({
         });
 
         return new Promise((resolve, reject) => {
-            const reconnect = reconnectCore(() => new WebSocket(this.ledger.ilpUrl.replace("http", "ws") + this.ledger.notificationsUrl));
+            const url = this.ledger.ilpUrl.replace("http", "ws") + this.ledger.notificationsUrl;
+            const reconnect = reconnectCore(() => new WebSocket(url));
 
             this.connection = reconnect({immediate: true}, (ws) => {
                 ws.on('open', () => {
-                    debug('ws connected', this.ledger.ilpUrl.replace("http", "ws") + this.ledger.notificationsUrl);
+                    debug('ws connected', url);
 
                     this.connected = true;
                     this.emit('connect');
@@ -56,7 +62,7 @@ module.exports = Object.assign({
                     }
 
                     if (message.method === 'connect') {
-                        debug('ws established');
+                        debug('ws established', url);
                         return resolve(null);
                     }
                     else if (message.method == 'message') {
@@ -114,6 +120,8 @@ module.exports = Object.assign({
     },
 
     subscribe: function () {
+        debug('subscribing for ', this.account.wallet);
+
         return this.sendWs('subscribe', { account: this.account.wallet });
     },
 
