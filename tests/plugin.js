@@ -7,7 +7,6 @@ const chaiAsPromised = require('chai-as-promised');
 mock('../gateways/gatehub', './mocks/gatehubMock');
 
 const Plugin = require('../index');
-const gatehubMock = require('./mocks/gatehubMock');
 let assert = chai.assert;
 chai.use(chaiAsPromised);
 
@@ -70,7 +69,7 @@ describe('address service', () => {
                 next()
             });
 
-            gatehubMock.testEmit('message', {
+            plugin.gatehub.testEmit('message', {
                 method: 'message',
                 ledger: 'example.ledger.',
                 account: 'example.ledger.connector',
@@ -91,7 +90,7 @@ describe('address service', () => {
                 expiresAt: '2016-05-18T12:00:00.000Z'
             };
 
-            gatehubMock.setCallback({
+            plugin.gatehub.setCallback({
                 transfer: function(transfer) {
                     assert.equal(transfer.amount, transferRequest.amount);
                     assert.equal(transfer.sending_address, opts.account.wallet);
@@ -110,7 +109,7 @@ describe('address service', () => {
                 next();
             });
 
-            gatehubMock.testEmit('transfer', {
+            plugin.gatehub.testEmit('transfer', {
                 method: 'transfer.create',
                 data: Object.assign({}, testTransfer, {
                     sending_address: testTransfer.receiving_address,
@@ -124,7 +123,7 @@ describe('address service', () => {
                 next();
             });
 
-            gatehubMock.testEmit('transfer', {
+            plugin.gatehub.testEmit('transfer', {
                 method: 'transfer.create',
                 data: Object.assign({}, testTransfer)
             });
@@ -138,7 +137,7 @@ describe('address service', () => {
             let transfer = Object.assign({}, testTransfer, { state: 'executed' });
             delete transfer.execution_condition;
 
-            gatehubMock.testEmit('transfer', {
+            plugin.gatehub.testEmit('transfer', {
                 method: 'transfer.create',
                 data: transfer
             });
@@ -149,7 +148,7 @@ describe('address service', () => {
                 next();
             });
 
-            gatehubMock.testEmit('transfer', {
+            plugin.gatehub.testEmit('transfer', {
                 method: 'transfer.create',
                 data: Object.assign({}, testTransfer, { state: 'executed', execution_fulfillment: 'ff:123' })
             });
@@ -160,7 +159,7 @@ describe('address service', () => {
                 next();
             });
 
-            gatehubMock.testEmit('transfer', {
+            plugin.gatehub.testEmit('transfer', {
                 method: 'transfer.create',
                 data: Object.assign({}, testTransfer, { state: 'rejected', cancellation_fulfilment: 'ff:123' })
             });

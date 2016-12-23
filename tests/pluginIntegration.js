@@ -57,6 +57,7 @@ describe('Interledger Plugin', () => {
 
     afterEach(() => {
         this.wsMock.stop();
+        this.plugin.disconnect();
     });
 
     describe ('Info', () => {

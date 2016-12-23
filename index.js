@@ -3,7 +3,7 @@
 const EventEmitter = require('eventemitter2');
 const debug = require('debug')('plugin');
 const Promise = require('bluebird');
-const gatehub = require('./gateways/gatehub');
+const GatehubGateway = require('./gateways/gatehub');
 const Error = require('./errors');
 const lo = require('lodash');
 
@@ -27,6 +27,7 @@ let plugin = (opts) => {
     let ledger = opts.ledger;
     let account = opts.account;
     let prefix = `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}`;
+    let gatehub = GatehubGateway(opts);
 
     let cached = {};
 
@@ -104,6 +105,7 @@ let plugin = (opts) => {
     }
 
     return Object.assign({
+        gatehub: gatehub,
 
         connect: function () {
             debug('connecting...');

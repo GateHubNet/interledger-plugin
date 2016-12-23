@@ -3,28 +3,31 @@
 const EventEmitter = require('eventemitter2');
 const Promise = require('bluebird');
 
-module.exports = Object.assign({
+module.exports = () => {
 
-    connect: function () {
-        this.emit('connect');
-        return Promise.resolve();
-    },
+    return Object.assign({
 
-    subscribe: function () {
-        console.log('mock subscribed');
-    },
+        connect: function () {
+            this.emit('connect');
+            return Promise.resolve();
+        },
 
-    sendTransfer: function (id, account, amount, data, note, condition, expiresAt) {
-        this.callbacks.transfer(id, account, amount, data, note, condition, expiresAt);
-        return Promise.resolve({});
-    },
+        subscribe: function () {
+            console.log('mock subscribed');
+        },
 
-    testEmit: function (event, data) {
-        this.emit(event, data);
-    },
+        sendTransfer: function (id, account, amount, data, note, condition, expiresAt) {
+            this.callbacks.transfer(id, account, amount, data, note, condition, expiresAt);
+            return Promise.resolve({});
+        },
 
-    setCallback: function (callbacks) {
-        this.callbacks = callbacks;
-    }
+        testEmit: function (event, data) {
+            this.emit(event, data);
+        },
 
-}, EventEmitter.prototype);
+        setCallback: function (callbacks) {
+            this.callbacks = callbacks;
+        }
+
+    }, EventEmitter.prototype);
+};
