@@ -26,7 +26,7 @@ let plugin = (opts) => {
     let connected = false;
     let ledger = opts.ledger;
     let account = opts.account;
-    let prefix = `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}`;
+    let prefix = `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.`;
     let gatehub = GatehubGateway(opts);
 
     let cached = {};
