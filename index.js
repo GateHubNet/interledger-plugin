@@ -108,7 +108,7 @@ let plugin = (opts) => {
         gatehub: gatehub,
 
         connect: function () {
-            debug('connecting...');
+            debug(`connecting ${this.getPrefix()}...`);
 
             gatehub.removeAllListeners('connect');
             gatehub.on('connect', () => {

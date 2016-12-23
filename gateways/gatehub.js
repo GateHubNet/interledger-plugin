@@ -190,7 +190,7 @@ module.exports = (opts) => {
         },
 
         sendMessage: function (message) {
-            return this.ilpApi({method: 'post', uri: '/messages', body: message})
+            return this.ilpApi({ method: 'post', uri: '/messages', body: message })
                 .then(() => null);
         }
 
