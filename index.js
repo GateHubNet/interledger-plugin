@@ -70,7 +70,7 @@ let plugin = (opts) => {
         if (ghTransfer.receiving_address == account.wallet) {
             let transfer = Object.assign({}, common, {
                 direction: 'incoming',
-                account: `${prefix}.${ghTransfer.sending_address}`
+                account: `${prefix}${ghTransfer.sending_address}`
             });
 
             emitTransfer.call(this, 'incoming', ghTransfer, transfer);
@@ -79,7 +79,7 @@ let plugin = (opts) => {
         else if (ghTransfer.sending_address == account.wallet) {
             let transfer = Object.assign({}, common, {
                 direction: 'outgoing',
-                account: `${prefix}.${ghTransfer.receiving_address}`
+                account: `${prefix}${ghTransfer.receiving_address}`
             });
 
             emitTransfer.call(this, 'outgoing', ghTransfer, transfer);
@@ -168,9 +168,9 @@ let plugin = (opts) => {
         },
 
         getAccount: function () {
-            debug('getting account', `${prefix}.${account.wallet}`);
+            debug('getting account', `${prefix}${account.wallet}`);
 
-            return Promise.resolve(`${prefix}.${account.wallet}`);
+            return Promise.resolve(`${prefix}${account.wallet}`);
         },
 
         getBalance: function () {

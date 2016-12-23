@@ -54,7 +54,7 @@ describe('address service', () => {
 
     describe('info', () => {
         it ('should get prefix', () => {
-           return assert.eventually.equal(plugin.getPrefix(), `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}`);
+           return assert.eventually.equal(plugin.getPrefix(), `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.`);
         });
 
         it ('should return account', () => {
