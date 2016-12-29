@@ -99,11 +99,37 @@ describe('Interledger Plugin', () => {
 
 
     describe ('Messages', () => {
+        it ('should send message', next => {
+            this.ilpMock.post('/messages').reply(200, (uri, msg) => {
+                assert.equal(msg.from, 'g1.v1.w1');
+                assert.equal(msg.to, 'g1.v1.u2');
+                next();
+            });
 
-        it ('should send message and notify plugin', next => {
+            let data = {
+                ledger: 'g1.v1',
+                account: 'g1.v1.u2',
+                data: {
+                    source_amount: "100.25",
+                    source_address: "g2.v2.u2",
+                    destination_address: "g1.v1.u1",
+                    source_expiry_duration: "6000",
+                    destination_expiry_duration: "5"
+                }
+            };
+
+            this.plugin.sendMessage(data);
+        });
+
+
+        it ('should notify plugin for message', next => {
             this.ilpMock.post('/messages').reply(200);
 
             let data = {
+                ledger: 'g1.v1',
+                account: 'g1.v1.u1',
+                from: 'g1.v1.u1',
+                to: 'g1.v1.u2',
                 source_amount: "100.25",
                 source_address: "g2.v2.u2",
                 destination_address: "g1.v1.u1",
@@ -112,7 +138,7 @@ describe('Interledger Plugin', () => {
             };
 
             this.plugin.on('incoming_message', message => {
-                assert.deepEqual(data, message.data);
+                assert.deepEqual(data, message);
                 next();
             });
 

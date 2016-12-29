@@ -65,7 +65,7 @@ describe('address service', () => {
     describe('message', () => {
         it('should emit message event on incoming message', (next) => {
             plugin.on('incoming_message', (data) => {
-                assert.equal(data.data.foo, 'bar');
+                assert.equal(data.foo, 'bar');
                 next()
             });
 

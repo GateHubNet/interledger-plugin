@@ -45,11 +45,10 @@ let plugin = (opts) => {
 
     // function to handle message events
     function handleMessage (message) {
-        return this.emitAsync('incoming_message', {
+        return this.emitAsync('incoming_message', Object.assign({}, {
             ledger: prefix,
             account: prefix + message.account,
-            data: message.data
-        });
+        }, message.data));
     }
 
     // function to handle transfer events
@@ -108,7 +107,7 @@ let plugin = (opts) => {
         gatehub: gatehub,
 
         connect: function () {
-            debug(`connecting ${this.getPrefix()}...`);
+            debug(`connecting ${prefix}...`);
 
             gatehub.removeAllListeners('connect');
             gatehub.on('connect', () => {
@@ -207,9 +206,14 @@ let plugin = (opts) => {
         },
 
         sendMessage: function (message) {
-            debug('sending message', message);
+            return this.getAccount().then(from => {
+                message.to = message.account;
+                message.from = from;
 
-            return gatehub.sendMessage(message);
+                debug('sending message', message);
+
+                return gatehub.sendMessage(message);
+            });
         },
 
         getFulfillment: function (transferId) {
