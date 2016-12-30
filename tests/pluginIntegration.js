@@ -90,7 +90,7 @@ describe('Interledger Plugin', () => {
         });
 
         it ('should disconnect the plugin', (next) => {
-            this.plugin.on('disconnect', () => next());
+            this.plugin.once('disconnect', () => next());
 
             return assert.eventually.equal(this.plugin.disconnect(), null);
         });
@@ -137,7 +137,7 @@ describe('Interledger Plugin', () => {
                 destination_expiry_duration: "5"
             };
 
-            this.plugin.on('incoming_message', message => {
+            this.plugin.once('incoming_message', message => {
                 assert.deepEqual(data, message);
                 next();
             });
@@ -173,24 +173,14 @@ describe('Interledger Plugin', () => {
             return assert.eventually.equal(this.plugin.sendTransfer(transferRequest), null);
         });
 
-        it ('should fire outgoing prepare event', (next) => {
-            let transfer = Object.assign({}, testTransfer, {
-                sending_address: testTransfer.receiving_address,
-                receiving_address: testTransfer.sending_address
-            });
+        it ('should fulfill transfer', () => {
+            this.ilpMock.put('/transfers/u123').reply(200);
+            return assert.eventually.equal(this.plugin.fulfillCondition('u123', 'ff'), null);
+        });
 
-            this.plugin.on('outgoing_prepare', (transferEvent) => {
-                assert.equal(transferEvent.id, transfer.uuid);
-                assert.equal(transferEvent.account, `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.${testTransfer.sending_address}`);
-                next();
-            });
-
-            this.wsMock.send(JSON.stringify({
-                jsonrpc: '2.0',
-                id: null,
-                method: 'transfer.create',
-                data: transfer
-            }));
+        it ('should reject transfer', () => {
+            this.ilpMock.put('/transfers/u123').reply(200);
+            return assert.eventually.equal(this.plugin.rejectIncommingTransfer('u123', 'ff'), null);
         });
 
         it ('should get fulfilment for transfer', () => {
@@ -205,6 +195,28 @@ describe('Interledger Plugin', () => {
             return assert.isRejected(this.plugin.getFulfillment('t123'), Error.MissingFulfillmentError);
         });
 
+    });
+
+    describe ('Transfer events', () => {
+        it ('should fire outgoing prepare event', (next) => {
+            let transfer = Object.assign({}, testTransfer, {
+                sending_address: testTransfer.receiving_address,
+                receiving_address: testTransfer.sending_address
+            });
+
+            this.plugin.once('outgoing_prepare', (transferEvent) => {
+                assert.equal(transferEvent.id, transfer.uuid);
+                assert.equal(transferEvent.account, `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.${testTransfer.sending_address}`);
+                next();
+            });
+
+            this.wsMock.send(JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                method: 'transfer.create',
+                data: transfer
+            }));
+        });
     });
 
 

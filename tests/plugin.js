@@ -31,6 +31,7 @@ let testTransfer = {
     sending_address: '11111111',
     receiving_address: opts.account.wallet,
     data: {},
+    note: { ledger: 'ledger1' },
     state: 'prepared',
     execution_condition: 'cc:0:3:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU:0',
     expires_at: '2016-05-18T12:00:00.000Z'
@@ -39,6 +40,7 @@ let testTransfer = {
 describe('address service', () => {
     before(done => {
         plugin = Plugin(opts);
+        plugin.removeAllListeners();
 
         plugin.connect()
             .then(() => done())
@@ -64,7 +66,7 @@ describe('address service', () => {
 
     describe('message', () => {
         it('should emit message event on incoming message', (next) => {
-            plugin.on('incoming_message', (data) => {
+            plugin.once('incoming_message', (data) => {
                 assert.equal(data.foo, 'bar');
                 next()
             });
@@ -79,7 +81,7 @@ describe('address service', () => {
     });
 
     describe('transfers', () => {
-        it ('should send transfer and validate it', (next) => {
+        it('should send transfer and validate it', (next) => {
             let transferRequest = {
                 id: 'd86b0299-e2fa-4713-833a-96a6a75271b8',
                 account: 'dcd15f97-9b44-4e4b-8a2e-b87313a43d73.9c164c67-cc6d-424b-add5-8783a417e282.123456789',
@@ -91,7 +93,7 @@ describe('address service', () => {
             };
 
             plugin.gatehub.setCallback({
-                transfer: function(transfer) {
+                transfer: function (transfer) {
                     assert.equal(transfer.amount, transferRequest.amount);
                     assert.equal(transfer.sending_address, opts.account.wallet);
                     assert.equal(transfer.receiving_address, '123456789');
@@ -103,8 +105,33 @@ describe('address service', () => {
             plugin.sendTransfer(transferRequest);
         });
 
+    });
+
+    describe('transfer events', () => {
+        it ('should adapt transfer on the event correctly', (next) => {
+            plugin.once('incoming_prepare', (data) => {
+                assert.deepEqual(data, {
+                    id: 'd86b0299-e2fa-4713-833a-96a6a75271b8',
+                    ledger: 'dcd15f97-9b44-4e4b-8a2e-b87313a43d73.9c164c67-cc6d-424b-add5-8783a417e282.',
+                    amount: '100',
+                    data: {},
+                    noteToSelf: { ledger: 'ledger1' },
+                    executionCondition: 'cc:0:3:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU:0',
+                    expiresAt: '2016-05-18T12:00:00.000Z',
+                    direction: 'incoming',
+                    account: 'dcd15f97-9b44-4e4b-8a2e-b87313a43d73.9c164c67-cc6d-424b-add5-8783a417e282.11111111' }
+                );
+                next();
+            });
+
+            plugin.gatehub.testEmit('transfer', {
+                method: 'transfer.create',
+                data: Object.assign({}, testTransfer)
+            });
+        });
+
         it ('should fire outgoing prepare event', (next) => {
-            plugin.on('outgoing_prepare', (data) => {
+            plugin.once('outgoing_prepare', (data) => {
                 assert.equal(data.account, `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.11111111`);
                 next();
             });
@@ -119,7 +146,7 @@ describe('address service', () => {
         });
 
         it ('should fire incoming prepare event', (next) => {
-            plugin.on('incoming_prepare', (data) => {
+            plugin.once('incoming_prepare', (data) => {
                 next();
             });
 
@@ -130,7 +157,7 @@ describe('address service', () => {
         });
 
         it ('should fire incoming transfer event', (next) => {
-            plugin.on('incoming_transfer', (data) => {
+            plugin.once('incoming_transfer', (data) => {
                 next();
             });
 
@@ -144,7 +171,7 @@ describe('address service', () => {
         });
 
         it ('should fire incoming fulfill event', (next) => {
-            plugin.on('incoming_fulfill', (data) => {
+            plugin.once('incoming_fulfill', (data) => {
                 next();
             });
 
@@ -155,7 +182,7 @@ describe('address service', () => {
         });
 
         it ('should fire incoming reject event', (next) => {
-            plugin.on('incoming_cancel', (data) => {
+            plugin.once('incoming_cancel', (data) => {
                 next();
             });
 

@@ -60,6 +60,7 @@ let plugin = (opts) => {
             ledger: prefix,
             amount: ghTransfer.amount,
             data: ghTransfer.data,
+            noteToSelf: ghTransfer.note,
             executionCondition: ghTransfer.execution_condition,
             cancellationCondition: ghTransfer.cancellation_condition,
             expiresAt: ghTransfer.expires_at
@@ -85,21 +86,28 @@ let plugin = (opts) => {
         }
     }
 
+    // TODO check incoming/outgoing
+
     function emitTransfer(direction, ghTransfer, transfer) {
         if (ghTransfer.state === 'prepared') {
             this.emitAsync(`${direction}_prepare`, transfer);
+            debug(`${direction}_prepare`, transfer);
         }
         if (ghTransfer.state === 'executed' && !transfer.executionCondition) {
             this.emitAsync(`${direction}_transfer`, transfer);
+            debug(`${direction}_transfer`, transfer);
         }
         if (ghTransfer.state === 'executed' && ghTransfer.execution_fulfillment) {
             this.emitAsync(`${direction}_fulfill`, transfer, ghTransfer.execution_fulfillment);
+            debug(`${direction}_fulfill`, transfer);
         }
         if (ghTransfer.state === 'rejected' && ghTransfer.cancellation_fulfilment) {
             this.emitAsync(`${direction}_cancel`, transfer, ghTransfer.cancellation_fulfilment);
+            debug(`${direction}_cancel`, transfer);
         }
         else if (ghTransfer.state === 'rejected') {
             this.emitAsync(`${direction}_cancel`, transfer, 'transfer timed out.');
+            debug(`${direction}_cancel`, transfer);
         }
     }
 
