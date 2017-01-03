@@ -18,6 +18,10 @@ const Account = require('./Account');
  */
 let plugin = (opts) => {
 
+    if (!opts.urls || !opts.urls.notificationsUrl || !opts.urls.coreUrl || !opts.urls.ilpUrl) {
+        throw new Error.InvalidFieldsError('urls object wrong format');
+    }
+
     let connected = false;
     let urls = opts.urls;
     let account = Account(opts.account);
