@@ -74,7 +74,7 @@ describe('Interledger Plugin', () => {
         });
 
         it ('should get prefix', () => {
-            return assert.eventually.equal(this.plugin.getPrefix(), "g1.v1.");
+            return assert.eventually.equal(this.plugin.getPrefix(), "g1.v1.u1.");
         });
 
         it ('should get ledger precision and scale', () => {
@@ -222,7 +222,7 @@ describe('Interledger Plugin', () => {
 
             this.plugin.once('outgoing_prepare', (transferEvent) => {
                 assert.equal(transferEvent.id, transfer.uuid);
-                assert.equal(transferEvent.account, `${account.getGateway()}.${account.getVault()}.${testTransfer.sending_address}`);
+                assert.equal(transferEvent.account, `${account.getGateway()}.${account.getVault()}.${account.getUser()}.${testTransfer.sending_address}`);
                 next();
             });
 

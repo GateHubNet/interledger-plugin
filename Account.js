@@ -22,7 +22,7 @@ module.exports = (address) => {
         getUser: function () { return parts[2] },
         getVault: function () { return parts[1]; },
 
-        getPrefix: function () { return this.getLedger()+'.' },
+        getPrefix: function () { return `${this.getLedger()}.${this.getUser()}.` },
 
         toString: function () {
             return address;
