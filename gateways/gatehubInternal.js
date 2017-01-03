@@ -7,6 +7,17 @@ const request = require('request-promise');
 const reconnectCore = require('reconnect-core');
 const Promise = require('bluebird');
 
+
+/**
+ * GateHub internal is the gateway to gatehub service communication without needed authentication
+ * due to placment of the service in the internal DMZ
+ * @param {Object} urls object of urls
+ * @param {Object} urls.coreUrl url of the gh core service
+ * @param {Object} urls.ilpUrl url of the gh interledger service
+ * @param {Object} urls.notificationsUrl url of the gh notification service
+ * @param account
+ * @returns {*}
+ */
 module.exports = (urls, account) => {
 
     return Object.assign({

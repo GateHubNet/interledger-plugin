@@ -3,7 +3,6 @@
 const EventEmitter = require('eventemitter2');
 const debug = require('debug')('plugin');
 const Promise = require('bluebird');
-const GatehubGateway = require('./gateways/gatehub');
 const Error = require('./errors');
 const lo = require('lodash');
 const Account = require('./Account');
@@ -22,11 +21,19 @@ let plugin = (opts) => {
         throw new Error.InvalidFieldsError('urls object wrong format');
     }
 
+    // set gateway for gatehub communication based if the plugin is locally called within
+    // gatehub interledger service (due to optimization and stability we avoid websocket
+    // communication with localhost) or remotely
+    let GatehubGateway = require('./gateways/gatehubInternal');
+    if (opts.gateway == 'local') {
+        GatehubGateway = require('./gateways/gatehubLocal');
+    }
+
     let connected = false;
-    let urls = opts.urls;
-    let account = Account(opts.account);
-    let prefix = account.getPrefix();
-    let gatehub = GatehubGateway(urls, account);
+    const urls = opts.urls;
+    const account = Account(opts.account);
+    const prefix = account.getPrefix();
+    const gatehub = GatehubGateway(urls, account);
 
     // function to handle message events
     function handleMessage (message) {
