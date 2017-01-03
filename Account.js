@@ -21,8 +21,9 @@ module.exports = (address) => {
         getWallet: function () { return parts[3]; },
         getUser: function () { return parts[2] },
         getVault: function () { return parts[1]; },
+        getAccount: function () { return `${this.getLedger()}.${this.getUser()}` },
 
-        getPrefix: function () { return `${this.getLedger()}.${this.getUser()}.` },
+        getPrefix: function () { return `${this.getLedger()}.` },
 
         toString: function () {
             return address;

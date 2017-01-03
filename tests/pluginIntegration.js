@@ -74,7 +74,7 @@ describe('Interledger Plugin', () => {
         });
 
         it ('should get prefix', () => {
-            return assert.eventually.equal(this.plugin.getPrefix(), "g1.v1.u1.");
+            return assert.eventually.equal(this.plugin.getPrefix(), "g1.v1.");
         });
 
         it ('should get ledger precision and scale', () => {
