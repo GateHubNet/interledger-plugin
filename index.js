@@ -6,42 +6,23 @@ const Promise = require('bluebird');
 const GatehubGateway = require('./gateways/gatehub');
 const Error = require('./errors');
 const lo = require('lodash');
+const Account = require('./Account');
 
 /**
  * @param {Object} opts options for the ledger plugin, or an instantiated plugin object
  * @param {Object} opts.ledger Ledger configuration
- * @param {String} opts.ledger.prefix ledger prefix
- * @param {String} opts.ledger.gatewayUuid uuid of the gateway
- * @param {String} opts.ledger.vaultUuid uuid of the vault - specifies the currency
- * @param {String} opts.ledger.ilpUrl url of the ledger service
- * @param {String} opts.ledger.coreUrl url of the core gatehub service
- * @param {String} opts.ledger.notificationsUrl url endpoint of the notifications
- * @param {Object} opts.account Account for the plugin
- * @param {String} opts.account.userUuid uuid of the plugin user
- * @param {String} opts.account.wallet address of the wallet for the plugin user
+ * @param {String} opts.urls.ilpUrl url of the ledger service
+ * @param {String} opts.urls.coreUrl url of the core gatehub service
+ * @param {String} opts.urls.notificationsUrl url endpoint of the notifications
+ * @param {Object} opts.account Account string for the plugin - format: gateway_uuid.vault_uuid.user_uuid.wallet_address
  */
 let plugin = (opts) => {
-    // TODO validate opts
 
     let connected = false;
-    let ledger = opts.ledger;
-    let account = opts.account;
-    let prefix = `${opts.ledger.gatewayUuid}.${opts.ledger.vaultUuid}.`;
-    let gatehub = GatehubGateway(opts);
-
-    let cached = {};
-
-    function parseAccount (account) {
-        let parts = account.split('.');
-
-        if (parts.length < 3) {
-            throw new Error('');
-        }
-
-        return {
-            wallet: parts[2]
-        };
-    }
+    let urls = opts.urls;
+    let account = Account(opts.account);
+    let prefix = account.getPrefix();
+    let gatehub = GatehubGateway(urls, account);
 
     // function to handle message events
     function handleMessage (message) {
@@ -67,7 +48,7 @@ let plugin = (opts) => {
         }, lo.isNil);
 
         // if ghTransfer is incoming
-        if (ghTransfer.receiving_address == account.wallet) {
+        if (ghTransfer.receiving_address == account.getWallet()) {
             let transfer = Object.assign({}, common, {
                 direction: 'incoming',
                 account: `${prefix}${ghTransfer.sending_address}`
@@ -76,7 +57,7 @@ let plugin = (opts) => {
             emitTransfer.call(this, 'incoming', ghTransfer, transfer);
         }
         // gh transfer is outgoing
-        else if (ghTransfer.sending_address == account.wallet) {
+        else if (ghTransfer.sending_address == account.getWallet()) {
             let transfer = Object.assign({}, common, {
                 direction: 'outgoing',
                 account: `${prefix}${ghTransfer.receiving_address}`
@@ -175,16 +156,14 @@ let plugin = (opts) => {
         },
 
         getAccount: function () {
-            debug('getting account', `${prefix}${account.wallet}`);
-
-            return Promise.resolve(`${prefix}${account.wallet}`);
+            return Promise.resolve(account.toString());
         },
 
         getBalance: function () {
             debug('getting balance');
 
             return gatehub.getBalance().then(balances => {
-                let balance = balances.filter(balance => balance.vault.uuid == ledger.vaultUuid)[0];
+                let balance = balances.filter(balance => balance.vault.uuid == account.getVault())[0];
                 balance = balance.available ? balance.available : "0";
 
                 debug('got balance', balance);
@@ -198,10 +177,10 @@ let plugin = (opts) => {
 
             return gatehub.sendTransfer({
                 uuid: transfer.id,
-                sending_user_uuid: account.userUuid,
-                sending_address: account.wallet,
-                receiving_address: parseAccount(transfer.account).wallet,
-                vault_uuid: ledger.vaultUuid,
+                sending_user_uuid: account.getUser(),
+                sending_address: account.getWallet(),
+                receiving_address: Account(transfer.account).getWallet(),
+                vault_uuid: account.getVault(),
                 amount: transfer.amount,
                 data: transfer.data,
                 note: transfer.noteToSelf,
@@ -215,7 +194,7 @@ let plugin = (opts) => {
 
         sendMessage: function (message) {
             return this.getAccount().then(from => {
-                message.to = message.account;
+                message.to = Account(message.account).toString();
                 message.from = from;
 
                 debug('sending message', message);

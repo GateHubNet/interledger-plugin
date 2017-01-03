@@ -7,7 +7,7 @@ const request = require('request-promise');
 const reconnectCore = require('reconnect-core');
 const Promise = require('bluebird');
 
-module.exports = (opts) => {
+module.exports = (urls, account) => {
 
     return Object.assign({
         connection: null,
@@ -25,23 +25,23 @@ module.exports = (opts) => {
                 return Promise.resolve(null);
             }
 
-            this.ledger = opts.ledger;
-            this.account = opts.account;
+            this.urls = urls;
+            this.account = account;
 
             // TODO get auth token
 
             this.ilpApi = request.defaults({
-                baseUrl: this.ledger.ilpUrl,
-                json: true, headers: {'x-gatehub-uuid': this.account.userUuid}
+                baseUrl: this.urls.ilpUrl,
+                json: true, headers: {'x-gatehub-uuid': this.account.getUser()}
             });
 
             this.coreApi = request.defaults({
-                baseUrl: this.ledger.coreUrl,
-                json: true, headers: {'x-gatehub-uuid': this.account.userUuid}
+                baseUrl: this.urls.coreUrl,
+                json: true, headers: {'x-gatehub-uuid': this.account.getUser()}
             });
 
             return new Promise((resolve, reject) => {
-                const url = this.ledger.ilpUrl.replace("http", "ws") + this.ledger.notificationsUrl;
+                const url = this.urls.ilpUrl.replace("http", "ws") + this.urls.notificationsUrl;
                 const reconnect = reconnectCore(() => new WebSocket(url));
 
                 this.connection = reconnect({immediate: true}, (ws) => {
@@ -76,12 +76,12 @@ module.exports = (opts) => {
                     });
 
                     ws.on('error', () => {
-                        debug('ws connection error on ' + this.ledger.notificationsUrl);
+                        debug('ws connection error on ' + this.urls.notificationsUrl);
                         Promise.reject(); //reject(new UnreachableError('websocket connection error'));
                     });
 
                     ws.on('close', () => {
-                        debug('ws disconnected from ' + this.ledger.notificationsUrl);
+                        debug('ws disconnected from ' + this.urls.notificationsUrl);
                         if (this.connected) {
                             Promise.reject(); //reject(new UnreachableError('websocket connection error'))
                         }
@@ -101,7 +101,7 @@ module.exports = (opts) => {
                         this.emit('disconnect');
                     })
                     .on('error', (err) => {
-                        debug('ws error on ' + this.ledger.notificationsUrl + ':', err);
+                        debug('ws error on ' + this.urls.notificationsUrl + ':', err);
                         reject(err);
                     })
                     .connect();
@@ -122,15 +122,15 @@ module.exports = (opts) => {
         },
 
         subscribe: function () {
-            debug('subscribing for ', this.account.wallet);
+            debug('subscribing for ', this.account.getWallet());
 
-            return this.sendWs('subscribe', { account: this.account.wallet });
+            return this.sendWs('subscribe', { account: this.account.getWallet() });
         },
 
         sendWs: function (method, params) {
             if (this.ws == null) { return Promise.reject(); }
 
-            var requestId = ++this.requestId;
+            let requestId = ++this.requestId;
             return new Promise((resolve, reject) => {
                 const listener = (rpcResponse) => {
                     if (rpcResponse.id !== requestId) {
@@ -161,12 +161,12 @@ module.exports = (opts) => {
 
             return this.ilpApi({
                 method: 'get',
-                uri: `/gateways/${this.ledger.gatewayUuid}/vaults/${this.ledger.vaultUuid}`
+                uri: `/gateways/${this.account.getGateway()}/vaults/${this.account.getVault()}`
             });
         },
 
         getBalance: function () {
-            return this.coreApi({method: 'get', uri: `/wallets/${this.account.wallet}/balances`});
+            return this.coreApi({method: 'get', uri: `/wallets/${this.account.getWallet()}/balances`});
         },
 
         getFulfillment: function (uuid) {
