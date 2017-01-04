@@ -21,19 +21,18 @@ let plugin = (opts) => {
         throw new Error.InvalidFieldsError('urls object wrong format');
     }
 
-    // set gateway for gatehub communication based if the plugin is locally called within
-    // gatehub interledger service (due to optimization and stability we avoid websocket
-    // communication with localhost) or remotely
-    let GatehubGateway = require('./gateways/gatehubInternal');
-    if (opts.gateway == 'local') {
-        GatehubGateway = require('./gateways/gatehubLocal');
-    }
-
     let connected = false;
     const urls = opts.urls;
     const account = Account(opts.account);
     const prefix = account.getPrefix();
-    const gatehub = GatehubGateway(urls, account);
+
+    // set gateway for gatehub communication based if the plugin is locally called within
+    // gatehub interledger service (due to optimization and stability we avoid websocket
+    // communication with localhost) or remotely
+    let gatehub = require('./gateways/gatehubInternal')(urls, account);
+    if (opts.gateway == 'local' && opts.services) {
+        gatehub = require('./gateways/gatehubLocal')(urls, account, opts.services);
+    }
 
     // function to handle message events
     function handleMessage (message) {
