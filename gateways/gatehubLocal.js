@@ -1,5 +1,9 @@
 "use strict";
 
+const EventEmitter = require('eventemitter2');
+const debug = require('debug')('gatehub');
+const Promise = require('bluebird');
+
 module.exports = (urls, account, services) => {
 
     return Object.assign({
@@ -14,8 +18,9 @@ module.exports = (urls, account, services) => {
             this.urls = urls;
             this.account = account;
 
-            this.subscribe();
             this.emit('connect');
+
+            return Promise.resolve(null);
         },
 
         disconnect: function () {
@@ -24,10 +29,10 @@ module.exports = (urls, account, services) => {
 
         // subscribe to all account notifications
         subscribe: function () {
-            return services.notifications.subscribe(this.account.getWallet(), (account, method, data) => {
-                console.log('got event ' + method, data);
+            return services.notification.subscribe(this.account.getWallet(), (method, data) => {
+                debug('got event ', method, data);
 
-                this.emit(method, data);
+                this.emit(method, { method: method, data: data });
             });
         },
 

@@ -15,7 +15,7 @@ const Promise = require('bluebird');
  * @param {Object} urls.coreUrl url of the gh core service
  * @param {Object} urls.ilpUrl url of the gh interledger service
  * @param {Object} urls.notificationsUrl url of the gh notification service
- * @param account
+ * @param {String} account address of the plugin - format: gateway_uuid.vault_uuid.user_uuid.wallet_address
  * @returns {*}
  */
 module.exports = (urls, account) => {
@@ -39,8 +39,6 @@ module.exports = (urls, account) => {
             this.urls = urls;
             this.account = account;
 
-            // TODO get auth token
-
             this.ilpApi = request.defaults({
                 baseUrl: this.urls.ilpUrl,
                 json: true, headers: {'x-gatehub-uuid': this.account.getUser()}
@@ -51,6 +49,7 @@ module.exports = (urls, account) => {
                 json: true, headers: {'x-gatehub-uuid': this.account.getUser()}
             });
 
+            // TODO abstract this to notifications gateway
             return new Promise((resolve, reject) => {
                 const url = this.urls.ilpUrl.replace("http", "ws") + this.urls.notificationsUrl;
                 const reconnect = reconnectCore(() => new WebSocket(url));
@@ -74,6 +73,7 @@ module.exports = (urls, account) => {
                             return;
                         }
 
+
                         if (message.method === 'connect') {
                             debug('ws established', url);
                             return resolve(null);
@@ -81,8 +81,14 @@ module.exports = (urls, account) => {
                         else if (message.method == 'message') {
                             this.emit('message', message);
                         }
-                        else if (message.method.includes('transfer')) {
+                        else if (message.method && message.method.includes('transfer')) {
                             this.emit('transfer', message);
+                        }
+                        else if (message.result) {
+                            this.emit('result', message);
+                        }
+                        else {
+                            debug('ws got invalid message', data);
                         }
                     });
 
@@ -132,34 +138,20 @@ module.exports = (urls, account) => {
             }
         },
 
+        // subscribe to all account notifications
         subscribe: function () {
             debug('subscribing for ', this.account.getWallet());
 
             return this.sendWs('subscribe', { account: this.account.getWallet() });
         },
 
+        // send over websocket
         sendWs: function (method, params) {
             if (this.ws == null) { return Promise.reject(); }
 
-            let requestId = ++this.requestId;
             return new Promise((resolve, reject) => {
-                const listener = (rpcResponse) => {
-                    if (rpcResponse.id !== requestId) {
-                        return;
-                    }
-                    // Wait till nextTick to remove the listener so that it doesn't happen while the
-                    // event is part way through being emitted, which causes issues iterating the listeners.
-                    process.nextTick(() => this.removeListener('ws:response', listener));
-                    if (rpcResponse.error) {
-                        return reject(new ExternalError(rpcResponse.error.message));
-                    }
-                    resolve(rpcResponse);
-                };
-
-                this.on('ws:response', listener);
-
                 debug('websocket send ' + method + ' ' + JSON.stringify(params));
-                this.ws.send(JSON.stringify({jsonrpc: '2.0', id: this.requestId, method, params}));
+                this.ws.send(JSON.stringify({jsonrpc: '2.0', id: ++this.requestId, method, params}));
 
                 resolve(); // TODO resolve when approved that received
             });
