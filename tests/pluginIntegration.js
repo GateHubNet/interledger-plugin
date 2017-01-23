@@ -70,18 +70,21 @@ describe('Interledger Plugin', () => {
         });
 
         it ('should get account', () => {
-            return assert.eventually.equal(this.plugin.getAccount(), account.toString())
-        });
-
-        it ('should get prefix', () => {
-            return assert.eventually.equal(this.plugin.getPrefix(), "g1.v1.");
+            return assert.equal(this.plugin.getAccount(), account.toString())
         });
 
         it ('should get ledger precision and scale', () => {
             this.ilpMock.get(`/gateways/${account.getGateway()}/vaults/${account.getVault()}`)
                 .replyWithFile(200, __dirname + '/mocks/info1.json');
 
-            return assert.eventually.deepEqual(this.plugin.getInfo(), require('./mocks/info1.json'));
+            return assert.eventually.deepEqual(this.plugin.getInfo(), {
+                connectors: ["g1.v2.u5.w3"],
+                currencyCode: "Dollar",
+                currencySymbol: "$",
+                precision: 9,
+                prefix: "g1.v1.",
+                scale: 2,
+            });
         });
 
         it ('should get account balance', () => {

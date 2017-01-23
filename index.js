@@ -162,7 +162,7 @@ let plugin = (opts) => {
                     prefix: info.prefix,
                     precision: info.precision,
                     scale: info.scale,
-                    currencyCode: info.currency_code,
+                    currencyCode: info.currency_name,
                     currencySymbol: info.currency_symbol,
                     connectors: info.connectors
                 };
@@ -207,14 +207,12 @@ let plugin = (opts) => {
         },
 
         sendMessage: function (message) {
-            return this.getAccount().then(from => {
-                message.to = Account(message.account).toString();
-                message.from = from;
+            message.to = Account(message.account).toString();
+            message.from = this.getAccount();
 
-                debug('sending message', message);
+            debug('sending message', message);
 
-                return gatehub.sendMessage(message);
-            });
+            return gatehub.sendMessage(message);
         },
 
         getFulfillment: function (transferId) {

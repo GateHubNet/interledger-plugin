@@ -1,9 +1,8 @@
 {
   "precision": 9,
   "scale": 2,
-  "currencySymbol": "$",
-  "currencyName": "Dollar",
-  "connectors": [
-
-  ]
+  "currency_symbol": "$",
+  "currency_name": "Dollar",
+  "prefix": "g1.v1.",
+  "connectors": ["g1.v2.u5.w3"]
 }
