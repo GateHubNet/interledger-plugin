@@ -37,7 +37,8 @@ module.exports = (urls, account, services) => {
         },
 
         getInfo: function () {
-            return services.ledger.getInfo(this.account.getGateway(), this.account.getVault());
+            return services.ledger.getInfo(this.account.getGateway(), this.account.getVault())
+                .then(info => info.toJSON());
         },
 
         getBalance: function () {
@@ -45,7 +46,8 @@ module.exports = (urls, account, services) => {
         },
 
         getFulfillment: function (uuid) {
-            return services.ledger.getTransfer(uuid);
+            return services.ledger.getTransfer(uuid)
+                .then(transfer => transfer.toJSON());
         },
 
         fulfillCondition: function (uuid, fulfillment) {

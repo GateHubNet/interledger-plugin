@@ -196,7 +196,7 @@ describe('Interledger Plugin', () => {
 
         it ('should reject transfer', () => {
             this.ilpMock.put('/transfers/u123').reply(200);
-            return assert.eventually.equal(this.plugin.rejectIncommingTransfer('u123', 'ff'), null);
+            return assert.eventually.equal(this.plugin.rejectIncomingTransfer('u123', 'ff'), null);
         });
 
         it ('should get fulfilment for transfer', () => {

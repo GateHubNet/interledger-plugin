@@ -157,16 +157,20 @@ let plugin = (opts) => {
 
             return gatehub.getInfo().then(info => {
                 debug('got info', info);
-                return info;
+
+                return {
+                    prefix: info.prefix,
+                    precision: info.precision,
+                    scale: info.scale,
+                    currencyCode: info.currency_code,
+                    currencySymbol: info.currency_symbol,
+                    connectors: info.connectors
+                };
             });
         },
 
-        getPrefix: function () {
-            return Promise.resolve(prefix);
-        },
-
         getAccount: function () {
-            return Promise.resolve(account.toString());
+            return account.toString();
         },
 
         getBalance: function () {
@@ -238,7 +242,7 @@ let plugin = (opts) => {
             return gatehub.fulfillCondition(transferId, fulfillment);
         },
 
-        rejectIncommingTransfer: function (transferId, rejectMessage) {
+        rejectIncomingTransfer: function (transferId, rejectMessage) {
             debug('rejecting transfer', transferId);
 
             return gatehub.rejectTransfer(transferId, rejectMessage);
