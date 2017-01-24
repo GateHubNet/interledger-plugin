@@ -4,6 +4,7 @@ const EventEmitter = require('eventemitter2');
 const debug = require('debug')('plugin');
 const Promise = require('bluebird');
 const Error = require('./errors');
+const UnreachableError = require('./errors/unreachable-error');
 const lo = require('lodash');
 const Account = require('./Account');
 
@@ -22,6 +23,8 @@ let plugin = (opts) => {
     }
 
     let connected = false;
+    let infoCache = {};
+
     const urls = opts.urls;
     const account = Account(opts.account);
     const prefix = account.getPrefix();
@@ -76,8 +79,6 @@ let plugin = (opts) => {
             emitTransfer.call(this, 'outgoing', ghTransfer, transfer);
         }
     }
-
-    // TODO check incoming/outgoing
 
     function emitTransfer(direction, ghTransfer, transfer) {
         if (ghTransfer.state === 'prepared') {
@@ -139,7 +140,16 @@ let plugin = (opts) => {
             });
 
             return gatehub.connect(opts)
-                .tap(() => gatehub.subscribe());
+                .tap(() => Promise.join(
+                    gatehub.subscribe(),
+                    gatehub.getInfo(),
+                    (subscription, info) => {
+                        debug('connected');
+                        infoCache = info;
+                        console.log('connected', info);
+                        return null;
+                    }
+                ));
         },
 
         disconnect: function () {
@@ -154,19 +164,18 @@ let plugin = (opts) => {
 
         getInfo: function () {
             debug('getting info');
+            if (!connected) {
+                throw new UnreachableError();
+            }
 
-            return gatehub.getInfo().then(info => {
-                debug('got info', info);
-
-                return {
-                    prefix: info.prefix,
-                    precision: info.precision,
-                    scale: info.scale,
-                    currencyCode: info.currency_name,
-                    currencySymbol: info.currency_symbol,
-                    connectors: info.connectors
-                };
-            });
+            return {
+                prefix: infoCache.prefix,
+                precision: infoCache.precision,
+                scale: infoCache.scale,
+                currencyCode: infoCache.currency_name,
+                currencySymbol: infoCache.currency_symbol,
+                connectors: infoCache.connectors
+            };
         },
 
         getAccount: function () {
@@ -175,6 +184,9 @@ let plugin = (opts) => {
 
         getBalance: function () {
             debug('getting balance');
+            if (!connected) {
+                throw new UnreachableError();
+            }
 
             return gatehub.getBalance().then(balances => {
                 let balance = balances.filter(balance => balance.vault.uuid == account.getVault())[0];
@@ -188,6 +200,9 @@ let plugin = (opts) => {
         sendTransfer: function (transfer) {
             // TODO validation
             debug('sending transfer', transfer);
+            if (!connected) {
+                throw new UnreachableError();
+            }
 
             return gatehub.sendTransfer({
                 uuid: transfer.id,
@@ -207,6 +222,10 @@ let plugin = (opts) => {
         },
 
         sendMessage: function (message) {
+            if (!connected) {
+                throw new UnreachableError();
+            }
+
             message.to = Account(message.account).toString();
             message.from = this.getAccount();
 
@@ -217,6 +236,9 @@ let plugin = (opts) => {
 
         getFulfillment: function (transferId) {
             debug('getting fulfillment', transferId);
+            if (!connected) {
+                throw new UnreachableError();
+            }
 
             return gatehub.getFulfillment(transferId)
                 .then(transfer => {
@@ -236,12 +258,18 @@ let plugin = (opts) => {
 
         fulfillCondition: function (transferId, fulfillment) {
             debug('fulfilling transfer', transferId);
+            if (!connected) {
+                throw new UnreachableError();
+            }
 
             return gatehub.fulfillCondition(transferId, fulfillment);
         },
 
         rejectIncomingTransfer: function (transferId, rejectMessage) {
             debug('rejecting transfer', transferId);
+            if (!connected) {
+                throw new UnreachableError();
+            }
 
             return gatehub.rejectTransfer(transferId, rejectMessage);
         }

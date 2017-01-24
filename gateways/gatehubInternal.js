@@ -6,7 +6,7 @@ const WebSocket = require('ws');
 const request = require('request-promise');
 const reconnectCore = require('reconnect-core');
 const Promise = require('bluebird');
-
+const UnreachableError = require('../errors/unreachable-error');
 
 /**
  * GateHub internal is the gateway to gatehub service communication without needed authentication
@@ -147,7 +147,9 @@ module.exports = (urls, account) => {
 
         // send over websocket
         sendWs: function (method, params) {
-            if (this.ws == null) { return Promise.reject(); }
+            if (this.ws == null) {
+                throw new UnreachableError();
+            }
 
             return new Promise((resolve, reject) => {
                 debug('websocket send ' + method + ' ' + JSON.stringify(params));
@@ -158,10 +160,6 @@ module.exports = (urls, account) => {
         },
 
         getInfo: function () {
-            if (this.connected == false) {
-                return Promise.reject();
-            }
-
             return this.ilpApi({
                 method: 'get',
                 uri: `/gateways/${this.account.getGateway()}/vaults/${this.account.getVault()}`
