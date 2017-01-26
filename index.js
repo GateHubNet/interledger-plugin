@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('eventemitter2');
-const debug = require('debug')('plugin');
+const Debug = require('debug');
 const Promise = require('bluebird');
 const Error = require('./errors');
 const UnreachableError = require('./errors/unreachable-error');
@@ -28,6 +28,7 @@ let plugin = (opts) => {
     const urls = opts.urls;
     const account = Account(opts.account);
     const prefix = account.getPrefix();
+    const debug = Debug(`plugin:${account.getWallet()}`);
 
     // set gateway for gatehub communication based if the plugin is locally called within
     // gatehub interledger service (due to optimization and stability we avoid websocket

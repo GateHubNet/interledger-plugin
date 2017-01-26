@@ -1,7 +1,7 @@
 "use strict";
 
 const EventEmitter = require('eventemitter2');
-const debug = require('debug')('gatehub');
+const Debug = require('debug');
 const WebSocket = require('ws');
 const request = require('request-promise');
 const reconnectCore = require('reconnect-core');
@@ -19,6 +19,8 @@ const UnreachableError = require('../errors/unreachable-error');
  * @returns {*}
  */
 module.exports = (urls, account) => {
+
+    let debug = Debug(`plugin:internal:${account.getWallet()}`);
 
     return Object.assign({
         connection: null,

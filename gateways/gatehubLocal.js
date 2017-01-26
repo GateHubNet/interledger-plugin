@@ -1,10 +1,12 @@
 "use strict";
 
 const EventEmitter = require('eventemitter2');
-const debug = require('debug')('gatehub');
+const Debug = require('debug');
 const Promise = require('bluebird');
 
 module.exports = (urls, account, services) => {
+
+    let debug = Debug(`plugin:local:${account.getWallet()}`);
 
     return Object.assign({
         account: null,
