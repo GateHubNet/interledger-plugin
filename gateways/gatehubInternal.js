@@ -144,7 +144,8 @@ module.exports = (urls, account) => {
         subscribe: function () {
             debug('subscribing for ', this.account.getWallet());
 
-            return this.sendWs('subscribe', { account: this.account.getWallet() });
+            let address = `${this.account.getVault()}.${this.account.getWallet()}`;
+            return this.sendWs('subscribe', { account: address });
         },
 
         // send over websocket

@@ -31,7 +31,8 @@ module.exports = (urls, account, services) => {
 
         // subscribe to all account notifications
         subscribe: function () {
-            return services.notification.subscribe(this.account.getWallet(), (method, data) => {
+            let address = `${this.account.getVault()}.${this.account.getWallet()}`;
+            return services.notification.subscribe(address, (method, data) => {
                 debug('got event ', method, data);
 
                 this.emit(method, { method: method, data: data });
