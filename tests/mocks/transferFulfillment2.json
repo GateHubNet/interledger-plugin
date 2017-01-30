@@ -1,0 +1,20 @@
+{
+  "uuid": "07c4dd0a-c2b9-4c61-8b49-65f5fd429786",
+  "sending_user_uuid": "5f059a8b-3921-5085-50c5-0250245b49b5",
+  "sending_address": "69063371",
+  "receiving_address": "69063371",
+  "amount": "10",
+  "vault_uuid": "9c164c67-cc6d-424b-add5-8783a417e282",
+  "data": {
+    "ilp_header": {
+      "account": "dcd15f97-9b44-4e4b-8a2e-b87313a43d73.9c164c67-cc6d-424b-add5-8783a417e282.69063371.40f1e343-0f4e-4fd0-a714-a62b6043167b",
+      "amount": "10",
+      "data": {
+        "expires_at": "2016-12-20T11:39:15.648Z"
+      }
+    }
+  },
+  "expires_at": "2016-12-20T11:38:55.680Z",
+  "state": "prepared",
+  "cancellation_fulfilment": "cc:0:3:ZabcJmdIqnqwjBLITGffyFiv5XfaAyH-K-zANzYZmQE:32"
+}

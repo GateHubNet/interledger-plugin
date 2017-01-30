@@ -75,7 +75,6 @@ module.exports = (urls, account) => {
                             return;
                         }
 
-
                         if (message.method === 'connect') {
                             debug('ws established', url);
                             return resolve(null);

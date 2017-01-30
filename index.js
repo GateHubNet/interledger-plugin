@@ -18,6 +18,10 @@ const Account = require('./Account');
  */
 let plugin = (opts) => {
 
+    if (typeof opts !== 'object') {
+        throw new Error.InvalidFieldsError('argument must be an object');
+    }
+
     if (!opts.urls || !opts.urls.notificationsUrl || !opts.urls.coreUrl || !opts.urls.ilpUrl) {
         throw new Error.InvalidFieldsError('urls object wrong format');
     }
@@ -147,7 +151,6 @@ let plugin = (opts) => {
                     (subscription, info) => {
                         debug('connected');
                         infoCache = info;
-                        console.log('connected', info);
                         return null;
                     }
                 ));
@@ -180,6 +183,10 @@ let plugin = (opts) => {
         },
 
         getAccount: function () {
+            if (!connected) {
+                throw new UnreachableError();
+            }
+
             return account.toString();
         },
 
@@ -199,17 +206,25 @@ let plugin = (opts) => {
         },
 
         sendTransfer: function (transfer) {
-            // TODO validation
             debug('sending transfer', transfer);
+
             if (!connected) {
                 throw new UnreachableError();
             }
+            if (typeof transfer.account !== 'string') {
+                throw new Error.InvalidFieldsError('invalid account')
+            }
+            if (typeof transfer.amount !== 'string' || +transfer.amount <= 0) {
+                throw new Error.InvalidFieldsError('invalid amount')
+            }
+
+            const receiverAccount = Account(transfer.account);
 
             return gatehub.sendTransfer({
                 uuid: transfer.id,
                 sending_user_uuid: account.getUser(),
                 sending_address: account.getWallet(),
-                receiving_address: Account(transfer.account).getWallet(),
+                receiving_address: receiverAccount.getWallet(),
                 vault_uuid: account.getVault(),
                 amount: transfer.amount,
                 data: transfer.data,

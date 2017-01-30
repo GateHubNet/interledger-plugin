@@ -7,6 +7,7 @@ const chaiAsPromised = require('chai-as-promised');
 const nock = require('nock');
 const mock = require('mock-require');
 const Error = require('../errors');
+const UnreachableError = require('./../errors/unreachable-error');
 const Account = require('../Account');
 
 mock('ws', mockSocket.WebSocket);
@@ -40,7 +41,27 @@ let testTransfer = {
 };
 
 
-describe('Interledger Plugin', () => {
+
+describe ('Account model', () => {
+
+    it ('should construct model', () => {
+        let account = Account('g1.v1.u1.123');
+        assert.equal(account.getLedger(), 'g1.v1');
+        assert.equal(account.getWallet(), '123');
+        assert.equal(account.getAccount(), 'g1.v1.u1');
+        assert.equal(account.toString(), 'g1.v1.u1.123');
+    });
+
+    it ('should throw InvalidFieldsError', () => {
+        assert.throws(Account.bind(Account, ''), Error.InvalidFieldsError);
+    });
+});
+
+describe ('Interledger Local Plugin', () => {
+
+});
+
+describe ('Interledger Internal Plugin', () => {
 
     beforeEach(next => {
         this.plugin = Plugin(opts);
@@ -61,7 +82,22 @@ describe('Interledger Plugin', () => {
         this.plugin.disconnect();
     });
 
-    describe ('Info', () => {
+    describe ('Construction', () => {
+        it ('should not construct the plugin InvalidFieldsError', () => {
+            assert.throws(Plugin.bind(Plugin, {}), Error.InvalidFieldsError);
+        });
+
+        it ('should not construct the plugin InvalidFieldsError', () => {
+            assert.throws(Plugin.bind(Plugin, ''), Error.InvalidFieldsError);
+        });
+
+        it ('should not construct the plugin InvalidFieldsError', () => {
+            assert.throws(Plugin.bind(Plugin, 1), Error.InvalidFieldsError);
+        });
+    });
+
+
+    describe ('Plugin', () => {
 
         it ('should connect and return promise', () => {
             this.plugin = Plugin(opts);
@@ -104,6 +140,59 @@ describe('Interledger Plugin', () => {
 
     });
 
+    describe ('Error', () => {
+        it ('get info should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.getInfo.bind(), UnreachableError);
+        });
+
+        it ('get account should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.getAccount.bind(), UnreachableError);
+        });
+
+        it ('get balance should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.getBalance.bind(), UnreachableError);
+        });
+
+        it ('send transfer should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.sendTransfer.bind(), UnreachableError);
+        });
+
+        it ('send message throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.sendMessage.bind(), UnreachableError);
+        });
+
+        it ('get fulfillment should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.getFulfillment.bind(), UnreachableError);
+        });
+
+        it ('fulfill should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.fulfillCondition.bind(), UnreachableError);
+        });
+
+        it ('reject should throw UnreachableError', () => {
+            let plugin = Plugin(opts);
+            assert.throws(plugin.rejectIncomingTransfer.bind(), UnreachableError);
+        });
+
+        it ('send transfer should throw InvalidFieldsError wrong account', () => {
+            assert.throws(this.plugin.sendTransfer.bind(this.plugin, { account: 1 }), Error.InvalidFieldsError);
+        });
+
+        it ('send transfer should throw InvalidFieldsError wrong amount', () => {
+            assert.throws(this.plugin.sendTransfer.bind(this.plugin, { account: 'bla', amount: -1 }, Error.InvalidFieldsError));
+        });
+
+        it ('send transfer should throw InvalidFieldsError wrong account format', () => {
+            assert.throws(this.plugin.sendTransfer.bind(this.plugin, { account: 'g1.v1.u1', amount: 10 }, Error.InvalidFieldsError));
+        });
+    });
 
     describe ('Messages', () => {
         it ('should send message', next => {
@@ -206,14 +295,17 @@ describe('Interledger Plugin', () => {
 
         it ('should get fulfilment for transfer', () => {
             this.ilpMock.get('/transfers/u123').replyWithFile(200, __dirname + '/mocks/transfer1.json');
-
             return assert.eventually.equal(this.plugin.getFulfillment('u123'), "ff:0:3:123123123");
         });
 
         it ('should fire MissingFulfillmentError on missing fulifillment', () => {
             this.ilpMock.get('/transfers/t123').replyWithFile(200, __dirname + '/mocks/transferFulfillment1.json');
-
             return assert.isRejected(this.plugin.getFulfillment('t123'), Error.MissingFulfillmentError);
+        });
+
+        it ('should fire AlreadyRolledBackError on rejected transfer', () => {
+            this.ilpMock.get('/transfers/t123').replyWithFile(200, __dirname + '/mocks/transferFulfillment2.json');
+            return assert.isRejected(this.plugin.getFulfillment('t123'), Error.AlreadyRolledBackError);
         });
 
     });
