@@ -95,13 +95,13 @@ module.exports = (urls, account) => {
 
                     ws.on('error', () => {
                         debug('ws connection error on ' + this.urls.notificationsUrl);
-                        Promise.reject(); //reject(new UnreachableError('websocket connection error'));
+                        Promise.reject(new UnreachableError('websocket connection error'));
                     });
 
                     ws.on('close', () => {
                         debug('ws disconnected from ' + this.urls.notificationsUrl);
                         if (this.connected) {
-                            Promise.reject(); //reject(new UnreachableError('websocket connection error'))
+                            Promise.reject(new UnreachableError('websocket connection error'))
                         }
                     });
 
@@ -132,7 +132,6 @@ module.exports = (urls, account) => {
             if (!emitter) return;
 
             this.connection = null;
-            // WebSocket#end doesn't exist, so reconnect-core#disconnect is no good.
             emitter.reconnect = false;
             if (emitter._connection) {
                 emitter._connection.close();

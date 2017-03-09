@@ -119,6 +119,15 @@ let plugin = (opts) => {
                 connected = true;
                 this.emit('connect');
                 debug('ws connected to gatehub');
+
+                Promise.join(
+                    gatehub.subscribe(),
+                    gatehub.getInfo(),
+                    (subscription, info) => {
+                        debug('connected');
+                        infoCache = info;
+                        return null;
+                    });
             });
 
             gatehub.removeAllListeners('disconnect');
@@ -144,16 +153,7 @@ let plugin = (opts) => {
                 handleTransfer.call(this, message);
             });
 
-            return gatehub.connect(opts)
-                .tap(() => Promise.join(
-                    gatehub.subscribe(),
-                    gatehub.getInfo(),
-                    (subscription, info) => {
-                        debug('connected');
-                        infoCache = info;
-                        return null;
-                    }
-                ));
+            return gatehub.connect(opts);
         },
 
         disconnect: function () {
