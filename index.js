@@ -114,20 +114,10 @@ let plugin = (opts) => {
         connect: function () {
             debug(`connecting ${prefix}...`);
 
+            // TODO resolve if already connected
             gatehub.removeAllListeners('connect');
             gatehub.on('connect', () => {
                 debug('ws connection established');
-                connected = true;
-
-                Promise.join(
-                    gatehub.subscribe(),
-                    gatehub.getInfo(),
-                    (subscription, info) => {
-                        debug('connected', info);
-                        this.emit('connect');
-                        infoCache = info;
-                        return null;
-                    });
             });
 
             gatehub.removeAllListeners('disconnect');
@@ -153,7 +143,18 @@ let plugin = (opts) => {
                 handleTransfer.call(this, message);
             });
 
-            return gatehub.connect(opts);
+            return gatehub.connect(opts)
+                .then(() => Promise.join(
+                    gatehub.subscribe(),
+                    gatehub.getInfo(),
+                    (subscription, info) => {
+                        debug('connected', info);
+                        infoCache = info;
+                        connected = true;
+                        this.emit('connect');
+                        return null;
+                    })
+                );
         },
 
         disconnect: function () {

@@ -58,10 +58,7 @@ module.exports = (urls, account) => {
 
                 this.connection = reconnect({immediate: true}, (ws) => {
                     ws.on('open', () => {
-                        debug('ws connected', url);
-
-                        this.connected = true;
-                        this.emit('connect');
+                        debug('ws open', url);
                     });
 
                     ws.on('message', (data) => {
@@ -77,6 +74,8 @@ module.exports = (urls, account) => {
 
                         if (message.method === 'connect') {
                             debug('ws established', url);
+                            this.connected = true;
+                            this.emit('connect');
                             return resolve(null);
                         }
                         else if (message.method == 'message') {

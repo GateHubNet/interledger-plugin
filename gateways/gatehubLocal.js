@@ -13,10 +13,6 @@ module.exports = (urls, account, services) => {
         connected: false,
 
         connect: function () {
-            if (this.connected) {
-                return Promise.resolve(null);
-            }
-
             this.urls = urls;
             this.account = account;
 
