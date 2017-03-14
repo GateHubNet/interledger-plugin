@@ -116,15 +116,15 @@ let plugin = (opts) => {
 
             gatehub.removeAllListeners('connect');
             gatehub.on('connect', () => {
+                debug('ws connection established');
                 connected = true;
-                this.emit('connect');
-                debug('ws connected to gatehub');
 
                 Promise.join(
                     gatehub.subscribe(),
                     gatehub.getInfo(),
                     (subscription, info) => {
-                        debug('connected');
+                        debug('connected', info);
+                        this.emit('connect');
                         infoCache = info;
                         return null;
                     });
