@@ -46,7 +46,7 @@ let plugin = (opts) => {
     function handleMessage (message) {
         return this.emitAsync('incoming_message', Object.assign({}, {
             ledger: prefix,
-            account: prefix + message.account,
+            account: prefix + message.to,
         }, message.data));
     }
 
@@ -213,14 +213,14 @@ let plugin = (opts) => {
             if (!connected) {
                 throw new UnreachableError();
             }
-            if (typeof transfer.account !== 'string') {
+            if (typeof transfer.to !== 'string') {
                 throw new Error.InvalidFieldsError('invalid account')
             }
             if (typeof transfer.amount !== 'string' || +transfer.amount <= 0) {
                 throw new Error.InvalidFieldsError('invalid amount')
             }
 
-            const receiverAccount = Account(transfer.account);
+            const receiverAccount = Account(transfer.to);
 
             return gatehub.sendTransfer({
                 uuid: transfer.id,
@@ -244,7 +244,7 @@ let plugin = (opts) => {
                 throw new UnreachableError();
             }
 
-            message.to = Account(message.account).toString();
+            message.to = Account(message.to).toString();
             message.from = this.getAccount();
 
             debug('sending message', message);
