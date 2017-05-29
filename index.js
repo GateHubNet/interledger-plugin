@@ -114,47 +114,48 @@ let plugin = (opts) => {
         connect: function () {
             debug(`connecting ${prefix}...`);
 
-            // TODO resolve if already connected
-            gatehub.removeAllListeners('connect');
-            gatehub.on('connect', () => {
-                debug('ws connection established');
-            });
+            return new Promise((resolve, rej) => {
+                // TODO resolve if already connected
+                gatehub.removeAllListeners('connect');
+                gatehub.on('connect', () => {
+                    debug('ws connection reestablished');
+                    Promise.join(
+                        gatehub.subscribe(),
+                        gatehub.getInfo(),
+                        (subscription, info) => {
+                            debug('connected', info);
+                            infoCache = info;
+                            connected = true;
+                            resolve(null);
+                            this.emit('connect');
+                        });
+                });
 
-            gatehub.removeAllListeners('disconnect');
-            gatehub.on('disconnect', () => {
-                connected = false;
-                this.emit('disconnect');
-                debug('ws disconnected from gatehub');
-            });
+                gatehub.removeAllListeners('disconnect');
+                gatehub.on('disconnect', () => {
+                    connected = false;
+                    this.emit('disconnect');
+                    debug('ws disconnected from gatehub');
+                });
 
-            gatehub.removeAllListeners('error');
-            gatehub.on('error', (error) => {
-                this.emit('error');
-                debug('plugin error ', error);
-            });
+                gatehub.removeAllListeners('error');
+                gatehub.on('error', (error) => {
+                    this.emit('error');
+                    debug('plugin error ', error);
+                });
 
-            gatehub.removeAllListeners('message');
-            gatehub.on('message', (message) => {
-                handleMessage.call(this, message);
-            });
+                gatehub.removeAllListeners('message');
+                gatehub.on('message', (message) => {
+                    handleMessage.call(this, message);
+                });
 
-            gatehub.removeAllListeners('transfer');
-            gatehub.on('transfer', (message) => {
-                handleTransfer.call(this, message);
-            });
+                gatehub.removeAllListeners('transfer');
+                gatehub.on('transfer', (message) => {
+                    handleTransfer.call(this, message);
+                });
 
-            return gatehub.connect(opts)
-                .then(() => Promise.join(
-                    gatehub.subscribe(),
-                    gatehub.getInfo(),
-                    (subscription, info) => {
-                        debug('connected', info);
-                        infoCache = info;
-                        connected = true;
-                        this.emit('connect');
-                        return null;
-                    })
-                );
+                gatehub.connect(opts);
+            });
         },
 
         disconnect: function () {
@@ -175,10 +176,10 @@ let plugin = (opts) => {
 
             return {
                 prefix: infoCache.prefix,
-                precision: infoCache.precision,
-                scale: infoCache.scale,
+                currencyScale: infoCache.scale,
                 currencyCode: infoCache.currency_name,
-                currencySymbol: infoCache.currency_symbol,
+                minBalance: 0, // todo update this
+                maxBalance: 1000000000, // todo update this
                 connectors: infoCache.connectors
             };
         },
