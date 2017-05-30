@@ -46,7 +46,7 @@ let plugin = (opts) => {
     function handleMessage (message) {
         return this.emitAsync('incoming_message', Object.assign({}, {
             ledger: prefix,
-            account: prefix + message.to,
+            to: prefix + message.to,
         }, message.data));
     }
 
@@ -58,7 +58,7 @@ let plugin = (opts) => {
             id: ghTransfer.uuid,
             ledger: prefix,
             amount: ghTransfer.amount,
-            data: ghTransfer.data,
+            ilp: ghTransfer.ilp,
             noteToSelf: ghTransfer.note,
             executionCondition: ghTransfer.execution_condition,
             cancellationCondition: ghTransfer.cancellation_condition,
@@ -69,7 +69,7 @@ let plugin = (opts) => {
         if (ghTransfer.receiving_address == account.getWallet()) {
             let transfer = Object.assign({}, common, {
                 direction: 'incoming',
-                account: `${account.getAccount()}.${ghTransfer.sending_address}`
+                to: `${account.getAccount()}.${ghTransfer.sending_address}`
             });
 
             emitTransfer.call(this, 'incoming', ghTransfer, transfer);
@@ -78,7 +78,7 @@ let plugin = (opts) => {
         else if (ghTransfer.sending_address == account.getWallet()) {
             let transfer = Object.assign({}, common, {
                 direction: 'outgoing',
-                account: `${account.getAccount()}.${ghTransfer.receiving_address}`
+                to: `${account.getAccount()}.${ghTransfer.receiving_address}`
             });
 
             emitTransfer.call(this, 'outgoing', ghTransfer, transfer);
@@ -210,11 +210,16 @@ let plugin = (opts) => {
         sendTransfer: function (transfer) {
             debug('sending transfer', transfer);
 
+            if (transfer.account) {
+                transfer.to = transfer.account;
+                debug('DEPRECATED account field used');
+            }
+
             if (!connected) {
                 throw new UnreachableError();
             }
             if (typeof transfer.to !== 'string') {
-                throw new Error.InvalidFieldsError('invalid account')
+                throw new Error.InvalidFieldsError('invalid to field')
             }
             if (typeof transfer.amount !== 'string' || +transfer.amount <= 0) {
                 throw new Error.InvalidFieldsError('invalid amount')
@@ -229,7 +234,7 @@ let plugin = (opts) => {
                 receiving_address: receiverAccount.getWallet(),
                 vault_uuid: account.getVault(),
                 amount: transfer.amount,
-                data: transfer.data,
+                ilp: transfer.ilp,
                 note: transfer.noteToSelf,
                 condition: transfer.executionCondition,
                 expires_at: transfer.expiresAt

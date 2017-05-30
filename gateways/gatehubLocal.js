@@ -60,7 +60,7 @@ module.exports = (urls, account, services) => {
         sendTransfer: function (adapted) {
             return services.ledger.prepareTransfer(adapted.uuid, adapted.sending_user_uuid,
                 adapted.sending_address, adapted.receiving_address, adapted.vault_uuid,
-                adapted.amount, adapted.data, adapted.note, adapted.condition, adapted.expires_at)
+                adapted.amount, adapted.ilp, adapted.note, adapted.condition, adapted.expires_at)
                 .then(res => null);
         },
 
