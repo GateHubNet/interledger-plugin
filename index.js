@@ -41,6 +41,9 @@ let plugin = (opts) => {
     if (opts.gateway == 'local' && opts.services) {
         gatehub = require('./gateways/gatehubLocal')(urls, account, opts.services);
     }
+    if (opts.gateway == 'external') {
+        gatehub = require('./gateways/gatehubExternal')(urls, account, opts.credentials);
+    }
 
     // function to handle message events
     function handleMessage (message) {

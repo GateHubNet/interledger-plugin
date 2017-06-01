@@ -26,11 +26,18 @@ module.exports = (urls, account) => {
         connection: null,
         requestId: 0,
         ws: null,
-        ilpApi: null,
-        coreApi: null,
         ledger: null,
         account: null,
         connected: false,
+
+        ilpApi: request.defaults({
+            baseUrl: urls.ilpUrl,
+            json: true, headers: {'x-gatehub-uuid': account.getUser()}
+        }),
+        coreApi: request.defaults({
+            baseUrl: urls.coreUrl,
+            json: true, headers: {'x-gatehub-uuid': account.getUser()}
+        }),
 
         connect: function () {
             if (this.connected) {
@@ -41,20 +48,17 @@ module.exports = (urls, account) => {
             this.urls = urls;
             this.account = account;
 
-            this.ilpApi = request.defaults({
-                baseUrl: this.urls.ilpUrl,
-                json: true, headers: {'x-gatehub-uuid': this.account.getUser()}
-            });
-
-            this.coreApi = request.defaults({
-                baseUrl: this.urls.coreUrl,
-                json: true, headers: {'x-gatehub-uuid': this.account.getUser()}
-            });
-
             // TODO abstract this to notifications gateway
             return new Promise((resolve, reject) => {
-                const url = this.urls.ilpUrl.replace("http", "ws") + this.urls.notificationsUrl;
-                const reconnect = reconnectCore(() => new WebSocket(url));
+                let url = this.urls.ilpUrl.replace("http", "ws");
+                if (this.urls.ilpUrl.includes("https")) {
+                    url += "s"; // add secure connection
+                }
+                url += this.urls.notificationsUrl;
+
+                const reconnect = reconnectCore(() => new WebSocket(url, { headers : {
+                    authorization: "Bearer abdd5d98fbcd2d1653635e67a2c45dd74482166bc"
+                }} ));
 
                 this.connection = reconnect({immediate: true}, (ws) => {
                     ws.on('open', () => {

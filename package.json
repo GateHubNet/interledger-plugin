@@ -1,6 +1,6 @@
 {
   "name": "@interledger/plugin",
-  "version": "3.0.5",
+  "version": "3.1.9",
   "description": "",
   "main": "index.js",
   "directories": {
