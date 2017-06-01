@@ -50,9 +50,12 @@ module.exports = (urls, account) => {
 
             // TODO abstract this to notifications gateway
             return new Promise((resolve, reject) => {
-                let url = this.urls.ilpUrl.replace("http", "ws");
+                let url = "";
                 if (this.urls.ilpUrl.includes("https")) {
-                    url += "s"; // add secure connection
+                    this.urls.ilpUrl.replace("https", "wss");
+                }
+                else {
+                    this.urls.ilpUrl.replace("http", "ws");
                 }
                 url += this.urls.notificationsUrl;
 
