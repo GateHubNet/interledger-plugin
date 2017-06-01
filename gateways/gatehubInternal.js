@@ -50,14 +50,7 @@ module.exports = (urls, account) => {
 
             // TODO abstract this to notifications gateway
             return new Promise((resolve, reject) => {
-                let url = "";
-                if (this.urls.ilpUrl.includes("https")) {
-                    this.urls.ilpUrl.replace("https", "wss");
-                }
-                else {
-                    this.urls.ilpUrl.replace("http", "ws");
-                }
-                url += this.urls.notificationsUrl;
+                let url = this.urls.ilpUrl.replace("http", "ws") + this.urls.notificationsUrl;
 
                 const reconnect = reconnectCore(() => new WebSocket(url, { headers : {
                     authorization: "Bearer abdd5d98fbcd2d1653635e67a2c45dd74482166bc"
